@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebGL Ray Tracer Demo - Liam Gray</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+
+<body>
+    <div id="page" class="ui container">
+        <div class="ui stackable relaxed grid">
+            <div class="row">
+
+                <!-- controls column -->
+                <div id="controls" class="six wide column">
+                    <div class="profiling ui inverted dimmer">
+                        <div class="ui text loader">
+                            This does nothing yet...
+                        </div>
+                    </div>
+
+                    <h2>WebGL Ray Tracing</h2>
+                    <br>
+                    <div class="ui slider range">
+                        <strong>Spheres:</strong> <span class="value"></span>
+                        <input class="spheres setting" type="range" min="1" max="64" step="1" value="27">
+                    </div>
+                    <br>
+                    <div class="ui slider range">
+                        <strong>Reflection Depth:</strong> <span class="value"></span>
+                        <input class="reflections setting" type="range" min="0" max="10" step="1" value="1">
+                    </div>
+                    <br>
+                    <div class="ui slider range">
+                        <strong>Zoom Depth:</strong> <span class="value"></span>
+                        <input class="zoom setting" type="range" min="1" max="10" step="1" value="5">
+                    </div>
+                    <br>
+                    <div class="ui slider checkbox shadows setting" style="display: block;">
+                        <input type="checkbox">
+                        <label><strong>Shadows</strong></label>
+                    </div>
+
+                    <br>
+
+                    <button class="profile ui labeled icon gray button">
+                        <i class="area chart icon"></i>
+                        Profile
+                    </button>
+
+                    <button class="render ui right labeled icon teal button">
+                        Render
+                        <i class="play icon"></i>
+                    </button>
+
+                    <span><i class="clock icon"></i></span><span class="render-time"></span>
+                </div>
+            </div>
+        </div>
+    </div>
