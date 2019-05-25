@@ -23,11 +23,11 @@ requirejs.config({
   }
 });
 
-requirejs(['jquery'],function main($, range, Controls) {
+requirejs(['jquery','range', 'controls'],function main($,  range,Controls) {
   'use strict';
 
   console.log('Initialising app...');
   $('.ui.checkbox').checkbox();
 
- // new Controls($('#screen'), $('#controls'));
+  new Controls($('#screen'), $('#controls'));
 });
