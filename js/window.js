@@ -1,7 +1,4 @@
-'use strict';
-
 define(function () {
-    'use strict';
-
-    return window;
+  'use strict';
+  return window;
 });

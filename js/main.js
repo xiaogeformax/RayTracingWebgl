@@ -1,5 +1,3 @@
-'use strict';
-
 requirejs.config({
   baseUrl: 'js',
   paths: {
@@ -18,12 +16,12 @@ requirejs.config({
     }
   },
   map: {
-    '*': { 'jquery': 'semantic' },
-    'semantic': { 'jquery': 'jquery' }
+    '*': {'jquery': 'semantic'},
+    'semantic': {'jquery': 'jquery'}
   }
 });
 
-requirejs(['jquery','range', 'controls'],function main($,  range,Controls) {
+requirejs(['jquery', 'range', 'controls'], function main($, range, Controls) {
   'use strict';
 
   console.log('Initialising app...');
