@@ -168,6 +168,16 @@ bool intersectTriangles(vec3 rayStart, vec3 rayDirection,out int idx,out vec3 no
     }
     return (closestDis >= 0.0);
 }
+
+ bool intersectionCube( vec3 dir, vec3 origin, vec3 cubeMin, vec3 cubeMax) {
+                    vec3 tMin = (cubeMin - origin) / dir;
+                    vec3 tMax = (cubeMax - origin) / dir;
+                    vec3 t1 = min(tMin, tMax);
+                    vec3 t2 = max(tMin, tMax);
+                    float tNear = max(max(t1.x, t1.y), t1.z);
+                    float tFar = min(min(t2.x, t2.y), t2.z);
+                    return (tNear >= tFar) ? true : false;
+ }
 /**
  * Calculate the intensity of light at a certain angle - 0.0 means none, 1.0 means true colour, >1.0 for gloss/shine
  */
@@ -200,6 +210,9 @@ vec3 lightAt(vec3 position, vec3 normal, vec3 viewer, vec3 color) {
   return intensity * color;
 }
 
+
+const vec3 boxMin = vec3(-0.5, -0.5, -0.5);
+  const vec3 boxMax = vec3(1.0, 1.0, 1.0);
 /**
  * Check if our ray intersects with an object/floor
  */
@@ -212,9 +225,11 @@ bool intersectWorld(vec3 rayStart, vec3 rayDirection, out vec3 intersectPosition
     float n = i / 32.0;
     color = vec3(sin(1.0/n) / 2.0 + 0.5, sin(n) / 2.0 + 0.5, cos(n) / 2.0 + 0.5);
     hitType = 0; //sphere
-  } else if(intersectTriangles(rayStart, rayDirection, gemIndex, normal,intersectPosition))
-  {
-
+   } else if(intersectionCube( rayDirection, rayStart,boxMin, boxMax))
+   {
+     float n = 1.0/ 32.0;
+     color = vec3(sin(1.0/n) / 2.0 + 0.5, sin(n) / 2.0 + 0.5, cos(n) / 2.0 + 0.5);
+  
   }
   else if (rayDirection.y < -0.01) {
     intersectPosition = rayStart + ((rayStart.y + 2.7) / -rayDirection.y) * rayDirection;
