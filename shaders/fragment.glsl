@@ -8,6 +8,24 @@ uniform int numberOfSpheres;  // max = 64
 uniform vec3 sphereCenters[64];
 vec3 lightDirections[3];
 
+
+uniform int trianglesnumber;  // m32
+uniform vec3 trianglespnts[96];//123 ,456,789... trianglespnt
+
+bool gettrianglepnt(int idx,out vec3 a)
+{
+	for(int i =0;i<96;i++)
+	{
+		if((i==idx)&&(i<trianglesnumber*3))
+		{
+
+			a = trianglespnts[i];
+			return true;
+		}
+	}
+	return false;
+}
+
 /**
  * Check for an intersection with a sphere
  */
@@ -73,6 +91,83 @@ bool intersectSpheresSimple(vec3 rayStart, vec3 rayDirection) {
   return (minDistance >= 0.0);
 }
 
+bool intersectSingleTriangle(vec3 rayStart,vec3 rayDirection,int nidx,out float distance)
+{
+  vec3 a,b,c;
+  if(!gettrianglepnt(nidx,a))
+  {
+  	return false;
+  }
+  if(!gettrianglepnt(nidx+1,a))
+  {
+  	return false;
+  }
+  if(!gettrianglepnt(nidx+2,a))
+  {
+  	return false;
+  }
+  vec3 veg1 = b-a;
+  vec3 veg2 = c-a;
+	vec3 vt = rayStart - a;
+	vec3 vp = cross(rayDirection,veg2);
+	vec3 vq = cross(vt,veg1);
+	float vpe1 = dot(vp,veg1);
+	float vu = dot(vp,vt)/vpe1;
+	float vv = dot(vq,rayDirection)/vpe1;
+
+	if((vu > 0.0) && (vv > 0.0) && ((vu + vv) < 1.0))
+	{
+	   distance = dot(vq ,veg2)/vpe1;
+	   return true;
+	}
+	else
+	{
+	   return false;
+	}
+
+}
+
+bool intersectTianglesSimple(vec3 rayStart,vec3 rayDirection)
+{
+	float closestDis = -1.0;
+    float hitDis = 0.0;
+    for (int i = 0; i < 32; i++)
+    {
+      if (i < trianglesnumber)
+      {
+        if (intersectSingleTriangle(rayStart, rayDirection,i, hitDis))
+        {
+          if (closestDis < 0.0 || hitDis < closestDis)
+          {
+            closestDis = hitDis;
+          }
+        }
+      }
+    }
+    return (closestDis >= 0.0);
+
+}
+
+bool intersectTriangles(vec3 rayStart, vec3 rayDirection,out int idx,out vec3 normal,out vec3 intersectpnt)
+{
+    float closestDis = -1.0, hitDis = 0.0;
+    for (int i = 0; i < 32; i++)
+    {
+      if (i < trianglesnumber)
+      {
+        if (intersectSingleTriangle(rayStart, rayDirection,i, hitDis))
+        {
+          if (closestDis < 0.0 || hitDis < closestDis)
+          {
+            closestDis = hitDis;
+            idx = i;
+            intersectpnt = rayStart + closestDis*rayDirection;
+          }
+        }
+      }
+    }
+    return (closestDis >= 0.0);
+}
 /**
  * Calculate the intensity of light at a certain angle - 0.0 means none, 1.0 means true colour, >1.0 for gloss/shine
  */
@@ -108,15 +203,20 @@ vec3 lightAt(vec3 position, vec3 normal, vec3 viewer, vec3 color) {
 /**
  * Check if our ray intersects with an object/floor
  */
-bool intersectWorld(vec3 rayStart, vec3 rayDirection, out vec3 intersectPosition, out vec3 normal, out vec3 color) {
-  int sphereIndex;
+bool intersectWorld(vec3 rayStart, vec3 rayDirection, out vec3 intersectPosition, out vec3 normal, out vec3 color,out int hitType) {
+  int gemIndex;
   float distance;
 
-  if (intersectSpheres(rayStart, rayDirection, sphereIndex, distance, intersectPosition, normal)) {
-    float i = float(sphereIndex);
+  if (intersectSpheres(rayStart, rayDirection, gemIndex, distance, intersectPosition, normal)) {
+    float i = float(gemIndex);
     float n = i / 32.0;
     color = vec3(sin(1.0/n) / 2.0 + 0.5, sin(n) / 2.0 + 0.5, cos(n) / 2.0 + 0.5);
-  } else if (rayDirection.y < -0.01) {
+    hitType = 0; //sphere
+  } else if(intersectTriangles(rayStart, rayDirection, gemIndex, normal,intersectPosition))
+  {
+
+  }
+  else if (rayDirection.y < -0.01) {
     intersectPosition = rayStart + ((rayStart.y + 2.7) / -rayDirection.y) * rayDirection;
 
     if (intersectPosition.x*intersectPosition.x + intersectPosition.z*intersectPosition.z > 300.0) {
@@ -147,8 +247,8 @@ void main(void) {
   // start pos, normal, end pos
   vec3 position1, normal, position2;
   vec3 color, reflectedColor, colorMax;
-
-  if (intersectWorld(cameraPosition, cameraDirection, position1, normal, reflectedColor)) {
+  int hitType =0;
+  if (intersectWorld(cameraPosition, cameraDirection, position1, normal, reflectedColor,hitType)) {
     color = lightAt(position1, normal, -cameraDirection, reflectedColor);
     colorMax = (reflectedColor + vec3(0.7)) / 1.7;
     cameraDirection = reflect(cameraDirection, normal);
@@ -160,7 +260,7 @@ void main(void) {
       if (i < int(reflections)) {
         if (even) {
           even = false;
-          if (intersectWorld(position1, cameraDirection, position2, normal, reflectedColor)) {
+          if (intersectWorld(position1, cameraDirection, position2, normal, reflectedColor,hitType)) {
             color += lightAt(position1, normal, -cameraDirection, reflectedColor) * colorMax;
             colorMax *= (reflectedColor + vec3(0.7)) / 1.7;
             cameraDirection = reflect(cameraDirection, normal);
@@ -169,7 +269,7 @@ void main(void) {
           }
         } else {
           even = true;
-          if (intersectWorld(position2, cameraDirection, position1, normal, reflectedColor)) {
+          if (intersectWorld(position2, cameraDirection, position1, normal, reflectedColor,hitType)) {
             color += lightAt(position2, normal, -cameraDirection, reflectedColor) * colorMax;
             colorMax *= (reflectedColor + vec3(0.7)) / 1.7;
             cameraDirection = reflect(cameraDirection, normal);
